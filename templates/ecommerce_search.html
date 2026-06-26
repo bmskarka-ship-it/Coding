@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agentic Ecommerce Search</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #07111f;
+            --panel: #0f172a;
+            --panel-2: #17233d;
+            --text: #f8fafc;
+            --muted: #cbd5e1;
+            --accent: #38bdf8;
+            --accent-2: #818cf8;
+            --border: rgba(255,255,255,0.1);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #020617 0%, #0f172a 45%, #111827 100%);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 20px 60px; }
+        .hero {
+            background: linear-gradient(135deg, rgba(56,189,248,0.16), rgba(129,140,248,0.16));
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.25);
+        }
+        .hero h1 { margin: 0 0 10px; font-size: clamp(1.8rem, 3vw, 2.6rem); }
+        .hero p { margin: 0; color: var(--muted); line-height: 1.6; }
+        .search-box {
+            margin-top: 18px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .search-box input {
+            flex: 1;
+            min-width: 260px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 14px 16px;
+            font-size: 1rem;
+            background: rgba(255,255,255,0.06);
+            color: var(--text);
+        }
+        .search-box button {
+            border: none;
+            border-radius: 999px;
+            padding: 14px 18px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .chip-row { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .chip { border: 1px solid var(--border); border-radius: 999px; padding: 7px 10px; font-size: 0.9rem; color: var(--muted); background: rgba(255,255,255,0.05); cursor: pointer; }
+        .status { margin-top: 16px; color: var(--muted); }
+        .results { margin-top: 24px; display: grid; gap: 16px; }
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+        }
+        .card h3 { margin: 0 0 8px; }
+        .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+        .pill { padding: 5px 9px; border-radius: 999px; background: rgba(56,189,248,0.12); color: #bae6fd; font-size: 0.85rem; }
+        .reason { color: var(--muted); margin: 0 0 10px; line-height: 1.5; }
+        .price { font-size: 1.1rem; font-weight: 700; }
+        .empty { color: var(--muted); padding: 24px; text-align: center; background: var(--panel); border-radius: 18px; border: 1px dashed var(--border); }
+        .agent-box { margin-top: 18px; padding: 16px; border-radius: 16px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); }
+        .agent-box strong { color: #bae6fd; }
+        code { color: #fcd34d; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <h1>Agentic ecommerce search prototype</h1>
+    <p>This demo simulates a shopping assistant that understands your intent, extracts filters, and ranks products for you like a modern ecommerce search experience.</p>
+    <div class="search-box">
+      <input id="query" type="text" placeholder="Try: best budget phone under $600 for camera" />
+      <button onclick="runSearch()">Search products</button>
+    </div>
+    <div class="chip-row">
+      <span class="chip" onclick="setQuery('best budget phone under $600 for camera')">Budget phone</span>
+      <span class="chip" onclick="setQuery('55 inch tv for gaming under $800')">Gaming TV</span>
+      <span class="chip" onclick="setQuery('lightweight laptop for coding under $1000')">Coding laptop</span>
+      <span class="chip" onclick="setQuery('premium tablet for drawing and travel')">Tablet</span>
+    </div>
+    <div class="status" id="status">Ask for a product category, price, or use case and the agent will rank the best matches.</div>
+  </section>
+
+  <div id="agentSummary" class="agent-box" style="display:none"></div>
+  <div id="results" class="results"></div>
+</div>
+
+<script>
+function setQuery(value) {
+  document.getElementById('query').value = value;
+  runSearch();
+}
+
+async function runSearch() {
+  const query = document.getElementById('query').value.trim();
+  const status = document.getElementById('status');
+  const results = document.getElementById('results');
+  const agentSummary = document.getElementById('agentSummary');
+  if (!query) {
+    status.textContent = 'Please enter a shopping request.';
+    return;
+  }
+  status.textContent = 'Searching catalog...';
+  results.innerHTML = '';
+  agentSummary.style.display = 'none';
+  try {
+    const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+    const data = await response.json();
+    status.textContent = data.message || 'Search completed.';
+    if (data.agent_summary) {
+      agentSummary.innerHTML = `<strong>Agent reasoning</strong><br>${data.agent_summary}`;
+      agentSummary.style.display = 'block';
+    }
+    if (!data.products || !data.products.length) {
+      results.innerHTML = '<div class="empty">No products matched that request.</div>';
+      return;
+    }
+    results.innerHTML = data.products.map(product => `
+      <div class="card">
+        <h3>${product.name}</h3>
+        <div class="meta">
+          <span class="pill">${product.category}</span>
+          <span class="pill">${product.brand}</span>
+          <span class="pill">Score: ${product.score}</span>
+        </div>
+        <p class="reason">${product.reason}</p>
+        <div class="price">$${product.price}</div>
+      </div>
+    `).join('');
+  } catch (error) {
+    status.textContent = 'Search failed. Please try again.';
+  }
+}
+</script>
+</body>
+</html>

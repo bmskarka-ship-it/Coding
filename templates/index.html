@@ -3,515 +3,332 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Forecast</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <title>Flower Bokeh Garden</title>
     <style>
+        :root {
+            color-scheme: dark;
+            --page-bg: #121c32;
+            --soft-white: #f8f5f2;
+            --text: #f3eff0;
+            --glass: rgba(255,255,255,0.18);
+            --glass-strong: rgba(255,255,255,0.24);
+            --shadow: rgba(0,0,0,0.25);
+        }
+
         * {
-            margin: 0;
-            padding: 0;
             box-sizing: border-box;
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 20px;
+            background: radial-gradient(circle at 15% 20%, rgba(236, 173, 175, 0.16), transparent 22%),
+                        radial-gradient(circle at 85% 10%, rgba(111, 190, 255, 0.18), transparent 20%),
+                        radial-gradient(circle at 80% 70%, rgba(225, 170, 246, 0.16), transparent 24%),
+                        linear-gradient(160deg, #14203f 0%, #1f3362 35%, #11203a 100%);
+            color: var(--text);
+            overflow-x: hidden;
         }
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at 50% 20%, rgba(255,255,255,0.06), transparent 14%),
+                        radial-gradient(circle at 20% 70%, rgba(255,236,196,0.08), transparent 16%),
+                        radial-gradient(circle at 85% 55%, rgba(255,173,196,0.08), transparent 18%);
+            pointer-events: none;
         }
 
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
-            margin-top: 20px;
-        }
-
-        .header h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .search-container {
-            margin-bottom: 30px;
+        main {
             position: relative;
+            min-height: 100vh;
+            padding: 42px 24px 64px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
         }
 
-        .search-box {
-            position: relative;
-        }
-
-        #cityInput {
-            width: 100%;
-            padding: 15px 20px;
-            font-size: 1.1rem;
-            border: none;
-            border-radius: 50px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        #cityInput:focus {
-            outline: none;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .suggestions-list {
+        .bokeh {
             position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border-radius: 10px;
-            margin-top: 5px;
-            max-height: 300px;
-            overflow-y: auto;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            display: none;
-            z-index: 1000;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
         }
 
-        .suggestions-list.show {
-            display: block;
-        }
-
-        .suggestion-item {
-            padding: 12px 20px;
-            cursor: pointer;
-            transition: background 0.2s;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .suggestion-item:hover {
-            background: #f5f5f5;
-        }
-
-        .suggestion-item:last-child {
-            border-bottom: none;
-        }
-
-        .suggestion-city {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .suggestion-country {
-            font-size: 0.9rem;
-            color: #999;
-        }
-
-        .current-weather {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            margin-bottom: 30px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-
-        .current-weather.hidden {
-            display: none;
-        }
-
-        .weather-emoji {
-            font-size: 5rem;
-            margin-bottom: 20px;
-        }
-
-        .city-name {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .country-name {
-            font-size: 1rem;
-            color: #999;
-            margin-bottom: 20px;
-        }
-
-        .temperature {
-            font-size: 4rem;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-
-        .weather-description {
-            font-size: 1.3rem;
-            color: #666;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .weather-details {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 30px;
-            flex-wrap: wrap;
-        }
-
-        .detail-item {
-            flex: 1;
-            min-width: 150px;
-            padding: 15px;
-            margin: 10px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
-
-        .detail-label {
-            font-size: 0.9rem;
-            color: #999;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-        }
-
-        .detail-value {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .forecast-title {
-            color: white;
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-        }
-
-        .forecast-title.hidden {
-            display: none;
-        }
-
-        .forecast-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .forecast-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .forecast-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .forecast-day {
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 5px;
-            font-size: 1.1rem;
-        }
-
-        .forecast-date {
-            font-size: 0.85rem;
-            color: #999;
-            margin-bottom: 10px;
-        }
-
-        .forecast-emoji {
-            font-size: 3rem;
-            margin: 10px 0;
-        }
-
-        .forecast-description {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 10px;
-        }
-
-        .temp-range {
-            display: flex;
-            justify-content: space-around;
-            margin: 10px 0;
-            font-weight: 600;
-        }
-
-        .temp-max {
-            color: #ff6b6b;
-        }
-
-        .temp-min {
-            color: #4a90e2;
-        }
-
-        .precipitation {
-            font-size: 0.85rem;
-            color: #999;
-            margin-top: 5px;
-        }
-
-        .loading {
-            text-align: center;
-            color: white;
-            display: none;
-        }
-
-        .spinner {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid white;
+        .bokeh span {
+            position: absolute;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
+            filter: blur(18px);
+            opacity: 0.28;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .bokeh span:nth-child(1) { width: 260px; height: 260px; background: rgba(255, 217, 211, 0.24); top: 8%; left: 10%; }
+        .bokeh span:nth-child(2) { width: 340px; height: 340px; background: rgba(117, 183, 255, 0.18); top: 18%; right: 12%; }
+        .bokeh span:nth-child(3) { width: 200px; height: 200px; background: rgba(221, 170, 237, 0.18); bottom: 12%; left: 15%; }
+        .bokeh span:nth-child(4) { width: 280px; height: 280px; background: rgba(255, 245, 173, 0.18); bottom: 20%; right: 18%; }
+        .bokeh span:nth-child(5) { width: 140px; height: 140px; background: rgba(255, 138, 172, 0.18); top: 42%; left: 55%; }
+        .bokeh span:nth-child(6) { width: 180px; height: 180px; background: rgba(128, 214, 184, 0.16); top: 62%; right: 28%; }
+
+        .panel {
+            position: relative;
+            z-index: 1;
+            width: min(1180px, calc(100% - 36px));
+            padding: 28px;
+            border-radius: 36px;
+            background: rgba(11, 24, 50, 0.78);
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 28px 80px rgba(0,0,0,0.35);
+            backdrop-filter: blur(16px);
+            display: grid;
+            gap: 22px;
         }
 
-        .error-message {
-            background: #ff6b6b;
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: none;
+        .hero {
+            display: grid;
+            gap: 12px;
             text-align: center;
         }
 
-        .error-message.show {
-            display: block;
+        .hero h1 {
+            margin: 0;
+            font-size: clamp(2.6rem, 5vw, 4.1rem);
+            line-height: 1.03;
+            letter-spacing: -0.04em;
         }
 
-        @media (max-width: 600px) {
-            .header h1 {
-                font-size: 2rem;
-            }
+        .hero p {
+            margin: 0 auto;
+            max-width: 760px;
+            color: #e8e4e0;
+            font-size: 1.05rem;
+            opacity: 0.92;
+        }
 
-            .temperature {
-                font-size: 2.5rem;
-            }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 14px;
+        }
 
-            .weather-emoji {
-                font-size: 3rem;
-            }
+        .control-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 999px;
+            padding: 16px 18px;
+            box-shadow: 0 18px 36px rgba(0,0,0,0.16);
+        }
 
-            .forecast-grid {
-                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            }
+        .control-group label {
+            font-size: 0.97rem;
+            font-weight: 600;
+        }
 
-            .current-weather {
-                padding: 20px;
-            }
+        .control-group input {
+            width: 80px;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-align: center;
+            outline: none;
+        }
+
+        .control-group input::-webkit-outer-spin-button,
+        .control-group input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .button {
+            border: none;
+            border-radius: 999px;
+            padding: 16px 28px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #102241;
+            cursor: pointer;
+            background: linear-gradient(135deg, #ffd1ff 0%, #9be8ff 100%);
+            box-shadow: 0 18px 36px rgba(0,0,0,0.18);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 22px 42px rgba(0,0,0,0.22);
+        }
+
+        .flower-field {
+            position: relative;
+            min-height: 660px;
+            border-radius: 32px;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: inset 0 0 140px rgba(255,255,255,0.05);
+            display: grid;
+            place-items: center;
+        }
+
+        .flower-field::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 18%, rgba(255,255,255,0.08), transparent 18%),
+                        radial-gradient(circle at 15% 70%, rgba(255,221,215,0.08), transparent 16%),
+                        radial-gradient(circle at 82% 50%, rgba(193,240,255,0.08), transparent 18%);
+            pointer-events: none;
+        }
+
+        .flower-field::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.28), transparent 27%),
+                              radial-gradient(circle at 85% 25%, rgba(255,255,255,0.18), transparent 18%),
+                              radial-gradient(circle at 35% 75%, rgba(255,255,255,0.14), transparent 15%),
+                              linear-gradient(180deg, transparent 10%, rgba(18, 32, 60, 0.12) 100%);
+            opacity: 0.9;
+            pointer-events: none;
+        }
+
+        .flower-image {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 520px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            z-index: 1;
+        }
+
+        .flower-image img {
+            width: 100%;
+            height: auto;
+            max-width: 1000px;
+            max-height: 640px;
+            border-radius: 24px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+            object-fit: contain;
+            background: rgba(255,255,255,0.02);
+        }
+
+        .status-message {
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 36px);
+            text-align: center;
+            font-size: 0.98rem;
+            color: rgba(255,255,255,0.82);
+            text-shadow: 0 1px 8px rgba(0,0,0,0.35);
+            z-index: 2;
+        }
+
+        .note {
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.75);
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 760px) {
+            .panel { padding: 22px; }
+            .hero h1 { font-size: 2.6rem; }
+            .flower-field { min-height: 520px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🌤️ Weather Forecast</h1>
-            <p>Search for any city to see the current weather and 7-day forecast</p>
+    <main>
+        <div class="bokeh">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
         </div>
 
-        <div class="search-container">
-            <div class="search-box">
-                <input 
-                    type="text" 
-                    id="cityInput" 
-                    placeholder="Enter city name..." 
-                    autocomplete="off"
-                >
-                <div class="suggestions-list" id="suggestionsList"></div>
+        <section class="panel">
+            <div class="hero">
+                <h1>Dreamy Exotic Flower Bokeh</h1>
+                <p>Choose how many flowers you’d like and let the garden bloom in a soft, luminous environment.</p>
             </div>
-        </div>
 
-        <div class="error-message" id="errorMessage"></div>
-
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>Loading weather data...</p>
-        </div>
-
-        <div class="current-weather hidden" id="currentWeather">
-            <div class="weather-emoji" id="weatherEmoji"></div>
-            <div class="city-name" id="cityName"></div>
-            <div class="country-name" id="countryName"></div>
-            <div class="temperature" id="temperature"></div>
-            <div class="weather-description" id="weatherDescription"></div>
-            <div class="weather-details">
-                <div class="detail-item">
-                    <div class="detail-label">Humidity</div>
-                    <div class="detail-value" id="humidity"></div>
+            <div class="controls">
+                <div class="control-group">
+                    <label for="flowerCount">Flowers</label>
+                    <input id="flowerCount" type="number" min="1" max="24" value="12" aria-label="Number of flowers">
                 </div>
-                <div class="detail-item">
-                    <div class="detail-label">Wind Speed</div>
-                    <div class="detail-value" id="windSpeed"></div>
-                </div>
+                <button class="button" id="generateBtn">Grow Garden</button>
             </div>
-        </div>
 
-        <div class="forecast-title hidden" id="forecastTitle">7-Day Forecast</div>
+            <div class="note" id="noteText">Requesting 12 realistic exotic flowers from the API.</div>
 
-        <div class="forecast-grid" id="forecastGrid"></div>
-    </div>
+            <div class="flower-field">
+                <div class="flower-image" id="flowerImage"></div>
+                <div class="status-message" id="statusMessage">Your generated floral scene appears here.</div>
+            </div>
+        </section>
+    </main>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
-        const cityInput = document.getElementById('cityInput');
-        const suggestionsList = document.getElementById('suggestionsList');
-        const currentWeatherDiv = document.getElementById('currentWeather');
-        const forecastGrid = document.getElementById('forecastGrid');
-        const forecastTitle = document.getElementById('forecastTitle');
-        const loading = document.getElementById('loading');
-        const errorMessage = document.getElementById('errorMessage');
+        const flowerCount = document.getElementById('flowerCount');
+        const noteText = document.getElementById('noteText');
+        const generateBtn = document.getElementById('generateBtn');
+        const flowerImage = document.getElementById('flowerImage');
+        const statusMessage = document.getElementById('statusMessage');
 
-        let selectedCity = null;
-
-        // Search for cities
-        cityInput.addEventListener('input', async (e) => {
-            const query = e.target.value.trim();
-            
-            if (query.length < 2) {
-                suggestionsList.classList.remove('show');
-                return;
-            }
+        async function fetchFlowerImage() {
+            const count = Math.min(Math.max(parseInt(flowerCount.value, 10) || 1, 1), 24);
+            flowerCount.value = count;
+            noteText.textContent = `Generating ${count} realistic exotic flowers via API...`;
+            statusMessage.textContent = 'Generating image, please wait...';
+            flowerImage.innerHTML = '';
 
             try {
-                const response = await fetch(`/api/search-cities?q=${encodeURIComponent(query)}`);
-                const cities = await response.json();
-
-                suggestionsList.innerHTML = '';
-                
-                if (cities.length === 0) {
-                    suggestionsList.innerHTML = '<div class="suggestion-item">No cities found</div>';
-                } else {
-                    cities.forEach(city => {
-                        const item = document.createElement('div');
-                        item.className = 'suggestion-item';
-                        item.innerHTML = `
-                            <div class="suggestion-city">${city.name}</div>
-                            <div class="suggestion-country">${city.admin1 ? city.admin1 + ', ' : ''}${city.country}</div>
-                        `;
-                        item.addEventListener('click', () => selectCity(city));
-                        suggestionsList.appendChild(item);
-                    });
-                }
-                
-                suggestionsList.classList.add('show');
-            } catch (error) {
-                console.error('Error fetching cities:', error);
-                showError('Error searching cities. Please try again.');
-            }
-        });
-
-        // Handle city selection
-        async function selectCity(city) {
-            selectedCity = city;
-            cityInput.value = `${city.name}, ${city.country}`;
-            suggestionsList.classList.remove('show');
-            
-            await fetchWeather(city);
-        }
-
-        // Fetch weather data
-        async function fetchWeather(city) {
-            loading.style.display = 'block';
-            errorMessage.classList.remove('show');
-
-            try {
-                const response = await fetch(
-                    `/api/weather?lat=${city.lat}&lon=${city.lon}&name=${encodeURIComponent(city.name)}&country=${encodeURIComponent(city.country)}`
-                );
-                
-                if (!response.ok) {
-                    throw new Error('Failed to fetch weather');
-                }
-
+                const response = await fetch(`/api/generate?count=${count}`);
                 const data = await response.json();
-                displayWeather(data);
+
+                if (!response.ok || data.error) {
+                    throw new Error(data.error || 'Image generation failed.');
+                }
+
+                const img = document.createElement('img');
+                img.src = data.image_url;
+                img.alt = `Realistic exotic flower photograph with ${count} blooms.`;
+                img.loading = 'lazy';
+                flowerImage.appendChild(img);
+                statusMessage.textContent = `Realistic flower image generated successfully.`;
             } catch (error) {
-                console.error('Error fetching weather:', error);
-                showError('Error fetching weather data. Please try again.');
-            } finally {
-                loading.style.display = 'none';
+                flowerImage.innerHTML = '';
+                statusMessage.textContent = error.message || 'Unable to generate the flower image.';
+                statusMessage.style.color = '#ffcccb';
             }
         }
 
-        // Display current weather
-        function displayWeather(data) {
-            const current = data.current;
-            const forecast = data.forecast;
-
-            // Update current weather
-            document.getElementById('weatherEmoji').textContent = current.emoji;
-            document.getElementById('cityName').textContent = current.city;
-            document.getElementById('countryName').textContent = current.country;
-            document.getElementById('temperature').textContent = `${current.temperature}°C`;
-            document.getElementById('weatherDescription').textContent = current.description;
-            document.getElementById('humidity').textContent = `${current.humidity}%`;
-            document.getElementById('windSpeed').textContent = `${current.wind_speed} km/h`;
-
-            currentWeatherDiv.classList.remove('hidden');
-            forecastTitle.classList.remove('hidden');
-
-            // Update forecast
-            forecastGrid.innerHTML = '';
-            forecast.forEach(day => {
-                const card = document.createElement('div');
-                card.className = 'forecast-card';
-                card.innerHTML = `
-                    <div class="forecast-day">${day.day}</div>
-                    <div class="forecast-date">${new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
-                    <div class="forecast-emoji">${day.emoji}</div>
-                    <div class="forecast-description">${day.description}</div>
-                    <div class="temp-range">
-                        <span class="temp-max">↑ ${day.max_temp}°</span>
-                        <span class="temp-min">↓ ${day.min_temp}°</span>
-                    </div>
-                    <div class="precipitation">💧 ${day.precipitation}mm</div>
-                `;
-                forecastGrid.appendChild(card);
-            });
-        }
-
-        // Show error message
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.classList.add('show');
-        }
-
-        // Allow Enter key to search
-        cityInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && selectedCity) {
-                suggestionsList.classList.remove('show');
-                fetchWeather(selectedCity);
+        generateBtn.addEventListener('click', fetchFlowerImage);
+        flowerCount.addEventListener('change', () => {
+            const value = parseInt(flowerCount.value, 10);
+            if (Number.isNaN(value) || value < 1) {
+                flowerCount.value = 1;
+            } else if (value > 24) {
+                flowerCount.value = 24;
             }
         });
 
-        // Close suggestions when clicking outside
-        document.addEventListener('click', (e) => {
-            if (e.target !== cityInput && e.target !== suggestionsList) {
-                suggestionsList.classList.remove('show');
-            }
-        });
+        window.addEventListener('load', fetchFlowerImage);
     </script>
 </body>
 </html>
